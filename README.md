@@ -1,4 +1,4 @@
-## Openshift Origin Infrastructure
+# Openshift Origin Infrastructure
 
 ## About
 
@@ -32,6 +32,7 @@ ansible-playbook -i inventory openshift-ansible/playbooks/byo/config.yml
 
 ### TODO
 * Parameterize ansible inventory and terraform template
+* Support for user-provided ssl certs
 * Dedicated VPC spanning 3 AZs
 * 3 Master instances spanning 3 AZs behind an elastic loadbalancer
 * Dedicated infra instances  spanning 3 AZs
