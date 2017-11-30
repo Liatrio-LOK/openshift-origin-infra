@@ -16,8 +16,8 @@ without requiring a paid redhat enterprise subscription.
 
 ## Requirements
 
-* terraform (tested with v0.10.5)
-* ansible (teste with v2.3.1.0)
+* [Terraform](https://www.terraform.io/intro/index.html) (Tested with v0.10.5)
+* [Ansible](https://www.ansible.com/get-started) (Tested with v2.3.1.0)
 
 ## Provisioning
 
