@@ -1,0 +1,6 @@
+[masters]
+master-1 ansible_ssh_host=master.os-sandbox.liatr.io
+
+[nodes]
+node-0 ansible_ssh_host=node0.os-sandbox.liatr.io
+node-1 ansible_ssh_host=node1.os-sandbox.liatr.io

@@ -6,11 +6,6 @@ resource "aws_instance" "config-server" {
   key_name               = "${var.aws_key_pair}"
   vpc_security_group_ids = ["${aws_security_group.config-server.id}", "${aws_security_group.internal.id}"]
 
-  root_block_device {
-    volume_type = "gp2"
-    volume_size = "20"
-  }
-
   provisioner "remote-exec" {
     script = "${path.module}/config-server-prep.sh"
 
@@ -19,6 +14,10 @@ resource "aws_instance" "config-server" {
       user        = "centos"
       private_key = "${file("${var.private_key_path}")}"
     }
+  }
+  provisioner "file" {
+    source = "hosts"
+    destination = "/etc/ansible/hosts"
   }
   tags {
     Name = "config.os-sandbox.liatr.io"
@@ -31,27 +30,6 @@ resource "aws_security_group" "config-server" {
   ingress {
     from_port   = 22
     to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 8443
-    to_port     = 8443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
