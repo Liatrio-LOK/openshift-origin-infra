@@ -6,8 +6,6 @@ resource "aws_instance" "config-server" {
   key_name               = "${var.aws_key_pair}"
   vpc_security_group_ids = ["${aws_security_group.config-server.id}", "${aws_security_group.internal.id}"]
 
-  depends_on = ["${aws_instance.master}", "${aws_instance.nodes}"]
-
   provisioner "remote-exec" {
     script = "${path.module}/config-server-prep.sh"
 
@@ -54,3 +52,4 @@ resource "aws_route53_record" "config-server" {
   ttl     = 300
   records = ["${aws_instance.config-server.public_ip}"]
 }
+

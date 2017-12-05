@@ -52,9 +52,10 @@ resource "aws_instance" "master" {
     script = "${path.module}/host-prep.sh" # 
 
     connection {
-      type        = "ssh"
-      user        = "centos"
-      private_key = "${file("${var.private_key_path}")}"
+      type         = "ssh"
+      user         = "centos"
+      private_key  = "${file("${var.private_key_path}")}"
+      bastion_host = "${aws_instance.config-server.public_ip}"
     }
   }
   tags {
@@ -93,9 +94,10 @@ resource "aws_instance" "nodes" {
     script = "${path.module}/host-prep.sh"
 
     connection {
-      type        = "ssh"
-      user        = "centos"
-      private_key = "${file("${var.private_key_path}")}"
+      type         = "ssh"
+      user         = "centos"
+      private_key  = "${file("${var.private_key_path}")}"
+      bastion_host = "${aws_instance.config-server.public_ip}"
     }
   }
   tags {
