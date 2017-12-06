@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#
+# Prepare host to join openshift cluster
+#
+
 sudo yum -y update
 
 # Docker Setup

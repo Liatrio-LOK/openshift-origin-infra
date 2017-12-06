@@ -1,194 +1,74 @@
-provider "aws" {
-  region = "us-east-1"
+#
+# Runs openshift-ansible playbook and configured openshift.
+#
+
+# Render an inventory file to use with the byo playbook
+data "template_file" "ansible_inventory" {
+  template = "${file("${path.module}/templates/inventory.tpl")}"
+
+  vars {
+    domain         = "${var.domain}"
+    cluster_prefix = "${var.cluster_prefix}"
+
+    bastion_host = "${aws_instance.bastion.public_ip}"
+    master_hosts = "${join("\n", aws_instance.master.*.private_ip)}"
+    etcd_hosts   = "${join("\n", aws_instance.etcd.*.private_ip)}"
+    node_hosts   = "${join("\n", aws_instance.nodes.*.private_ip)}"
+
+    github_oauth_client_id     = "${var.github_oauth_client_id}"
+    github_oauth_client_secret = "${var.github_oauth_client_secret}"
+    github_oauth_org           = "${var.github_oauth_org}"
+  }
 }
 
-# Variables 
-
-variable aws_key_pair {
-  default = "eddieb"
+# Save a copy of inventory locally
+resource "local_file" "inventory" {
+  content  = "${data.template_file.ansible_inventory.rendered}"
+  filename = "${path.module}/${var.cluster_prefix}-inventory"
 }
 
-variable private_key_path {
-  default = "~/.ssh/id_rsa"
-}
+resource "null_resource" "run_playbook" {
 
-variable ami {
-  default = "ami-ae7bfdb8" # CentOS 7 us-east-1
-}
+  depends_on = ["aws_instance.master", "aws_instance.etcd", "aws_instance.nodes"]
 
-variable node_count {
-  default = 2
-}
-
-# Instances
-
-resource "aws_instance" "master" {
-  ami                    = "${var.ami}"
-  instance_type          = "m4.xlarge"
-  key_name               = "${var.aws_key_pair}"
-  vpc_security_group_ids = ["${aws_security_group.master.id}", "${aws_security_group.internal.id}"]
-
-  root_block_device {
-    volume_type = "gp2"
-    volume_size = "80"
+  connection {
+    type         = "ssh"
+    user         = "centos"
+    host         = "${aws_instance.bastion.public_ip}"
+    agent        = true
   }
 
-  # Device for Docker storage backend to replace default thin pool
-  # See https://docs.openshift.org/latest/install_config/install/host_preparation.html#configuring-docker-storage
-  ebs_block_device {
-    volume_type = "gp2"
-    volume_size = 40
-    device_name = "/dev/sdf"
+  provisioner "file" {
+    content     = "${data.template_file.ansible_inventory.rendered}"
+    destination = "/home/centos/inventory"
   }
 
-  # GlusterFS storage (see https://goo.gl/rmwSD8)
-  ebs_block_device {
-    volume_type = "gp2"
-    volume_size = 100 # Minimum allowable size for gfs node
-    device_name = "/dev/sdg"
-  }
-
+  # Run the playbook
   provisioner "remote-exec" {
-    script = "${path.module}/host-prep.sh" # 
+    inline = [
+      "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i /home/centos/inventory openshift-ansible/playbooks/byo/config.yml",
+    ]
+  }
+
+  # Delete sensitive inventory data
+  /* TODO: Fix this
+  provisioner "file" {
+    content     = ""
+    destination = "/home/centos/inventory"
+  }
+  */
+}
+
+resource "null_resource" "configure_openshift" {
+  provisioner "remote-exec" {
+    script = "${path.module}/scripts/configure-openshift.sh"
 
     connection {
-      type        = "ssh"
-      user        = "centos"
-      private_key = "${file("${var.private_key_path}")}"
+      type         = "ssh"
+      user         = "centos"
+      agent        = true
+      bastion_host = "${aws_instance.bastion.public_ip}"
+      host         = "${aws_instance.master.0.private_ip}"
     }
   }
-  tags {
-    Name = "master.os-sandbox.liatr.io"
-  }
 }
-
-resource "aws_instance" "nodes" {
-  ami                    = "${var.ami}"
-  instance_type          = "m4.xlarge"
-  key_name               = "${var.aws_key_pair}"
-  vpc_security_group_ids = ["${aws_security_group.nodes.id}", "${aws_security_group.internal.id}"]
-  count                  = "${var.node_count}"
-
-  root_block_device {
-    volume_type = "gp2"
-    volume_size = "40"
-  }
-
-  # Device for Docker storage backend to replace default thin pool
-  # See https://docs.openshift.org/latest/install_config/install/host_preparation.html#configuring-docker-storage
-  ebs_block_device {
-    volume_type = "gp2"
-    volume_size = 40
-    device_name = "/dev/sdf"
-  }
-
-  # GlusterFS storage (see https://goo.gl/rmwSD8)
-  ebs_block_device {
-    volume_type = "gp2"
-    volume_size = 100 # Minimum allowable size for gfs node
-    device_name = "/dev/sdg"
-  }
-
-  provisioner "remote-exec" {
-    script = "${path.module}/host-prep.sh"
-
-    connection {
-      type        = "ssh"
-      user        = "centos"
-      private_key = "${file("${var.private_key_path}")}"
-    }
-  }
-  tags {
-    Name = "node${count.index}.os-sandbox.liatr.io"
-  }
-}
-
-# Security Groups
-
-resource "aws_security_group" "internal" {
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = "true"
-  }
-}
-
-resource "aws_security_group" "master" {
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 8443
-    to_port     = 8443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # outbound internet access
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_security_group" "nodes" {
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # outbound internet access
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-# DNS
-
-data "aws_route53_zone" "liatrio" {
-  name = "liatr.io"
-}
-
-resource "aws_route53_record" "master" {
-  zone_id = "${data.aws_route53_zone.liatrio.zone_id}"
-  name    = "master.os-sandbox.liatr.io"
-  type    = "A"
-  ttl     = 300
-  records = ["${aws_instance.master.public_ip}"]
-}
-
-resource "aws_route53_record" "nodes" {
-  zone_id = "${data.aws_route53_zone.liatrio.zone_id}"
-  count   = "${var.node_count}"
-  name    = "node${count.index}.os-sandbox.liatr.io"
-  type    = "A"
-  ttl     = 300
-  records = ["${element(aws_instance.nodes.*.public_ip, count.index)}"]
-}
-
