@@ -1,0 +1,8 @@
+${base_inventory}
+
+# Metrics
+openshift_metrics_install_metrics=true
+openshift_metrics_image_version=v3.6.1
+openshift_metrics_start_cluster=true
+openshift_metrics_cassandra_storage_type=dynamic
+

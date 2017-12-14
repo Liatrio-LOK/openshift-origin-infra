@@ -24,11 +24,15 @@ without requiring a paid redhat enterprise subscription.
 ## Provisioning
 
 1. Create a Route53 domain
-2. Create an ssl cert through AWS Certificate manager for `console.${cluster_prefix}.${domain}`
-3. Create a GitHub OAuth app and org for authentication (See https://docs.openshift.org/latest/install_config/configuring_authentication.html#GitHub)
+2. Create an ssl cert through AWS Cetificate Manager
+	* Domains should be `${cluster_prefix}.${domain}` and `*.${cluster_prefix}.${domain}`
+3. Create a GitHub OAuth app and org for authentication 
+	* Hompage URL: `https://${cluster_prefix}.${domain}`
+	* Authorization callback URL: `https://${cluster_prefix}.${domain}/oauth2callback/github`
 4. Create a tfvars file (see example.tfvars)
-5. Modify *scripts/configure-openshift* to add user permissions, etc. with the `oc` command after cluster setup (runs as system:admin). 
-6. Apply the terraform template:
+5. Apply the terraform template
+	* Create your own var file based on *example.tfvars*
+	* Run the commands below:
 
 ```sh
 $ ssh-add /path/to/private/key.pem 

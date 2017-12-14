@@ -4,6 +4,9 @@
 # Prepare host to join openshift cluster
 #
 
+sudo yum -y install wget git net-tools bind-utils iptables-services \
+	        bridge-utils bash-completion kexec-tools sos psacct httpd-tools
+
 sudo yum -y update
 
 # Docker Setup
