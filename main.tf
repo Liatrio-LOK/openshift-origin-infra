@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 variable aws_key_pair {
-  default = "eddieb"
+  default = "shanem"
 }
 
 variable ami {
