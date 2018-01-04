@@ -1,4 +1,6 @@
 [submodule "openshift-ansible"]
 	path = openshift-ansible
-	url = https://github.com/openshift/openshift-ansible.git
+	url = git@github.com:openshift/openshift-ansible.git
+  #url = https://github.com/openshift/openshift-ansible.git
+  # run "git submodule sync" to update URL
 	branch = release-3.6
