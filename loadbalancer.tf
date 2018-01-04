@@ -56,10 +56,10 @@ resource "aws_lb_listener" "cluster" {
    Below is the load balancer settings for the apps (nodes)
 */
 
-data "aws_acm_certificate" "cluster_wildcard" {
+/*data "aws_acm_certificate" "apps" {
   domain   = "*.${var.cluster_prefix}.${var.domain}"
   statuses = ["ISSUED"]
-}
+}*/
 
 resource "aws_lb" "apps" {
   name            = "apps-${var.cluster_prefix}"
@@ -101,7 +101,7 @@ resource "aws_lb_listener" "apps" {
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = "${data.aws_acm_certificate.cluster_wildcard.arn}"
+  certificate_arn   = "${data.aws_acm_certificate.cluster.arn}"
 
   default_action {
     target_group_arn = "${aws_lb_target_group.apps.arn}"
