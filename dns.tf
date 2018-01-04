@@ -20,7 +20,7 @@ resource "aws_route53_record" "cluster_wildcard" {
   type    = "A"
 
   alias {
-    name                   = "${aws_lb.cluster.dns_name}"
+    name                   = "${aws_lb.apps.dns_name}"
     zone_id                = "${aws_lb.cluster.zone_id}"
     evaluate_target_health = true
   }
