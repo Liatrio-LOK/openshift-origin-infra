@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 variable aws_key_pair {
-  default = "shanem"
+  default = "lok-os"
 }
 
 variable ami {
