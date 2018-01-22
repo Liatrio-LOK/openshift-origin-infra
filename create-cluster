@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# based off of https://github.com/liatrio/ldop-via-jenkins/blob/master/instantiate-demo-instance.sh
+
+terraform --version
+ansible --version
+
+workspace=$(dirname 0)
+
+cat << EOM > ./automated-cluster.tfvars
+/* This tfvars file was created by Jenkins */
+keypair = "lok-os"
+domain = "liatr.io"
+cluster_prefix = "$JENKINS_OS_PREFIX"
+az_count = "$JENKINS_OS_AZ_COUNT"
+node_count = "$JENKINS_OS_NODE_COUNT"
+github_oauth_client_id = "8267ddca3a14e0fec7f1"
+github_oauth_client_secret = "$JENKINS_OS_CLIENT_SECRET"
+github_oauth_org = "liatrio"
+EOM
+
+eval $(ssh-agent)
+
+ssh-add $JENKINS_OS_AWS_KEY
+
+terraform init -input=false
+
+export TF_WORKSPACE=$JENKINS_OS_PREFIX
+
+terraform workspace new $JENKINS_OS_PREFIX
+
+terraform apply -var-file="automated-cluster.tfvars" -auto-approve
+
+#terraform destroy -var-file="automated-cluster.tfvars" -force
