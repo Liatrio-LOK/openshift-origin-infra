@@ -27,5 +27,5 @@ export TF_WORKSPACE=$JENKINS_OS_PREFIX
 
 terraform destroy -var-file="automated-cluster.tfvars" -force
 
-terraform workspace delete -force $JENKINS_OS_PREFIX | echo 'done'
+#terraform workspace delete -force $JENKINS_OS_PREFIX | echo 'done'
 
