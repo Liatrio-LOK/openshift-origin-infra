@@ -23,6 +23,7 @@ resource "aws_vpc" "cluster_vpc" {
 
   tags {
     Name = "${var.cluster_prefix}"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
 
@@ -31,6 +32,7 @@ resource "aws_internet_gateway" "public_gateway" {
 
   tags {
     Name = "${var.cluster_prefix}"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
 
@@ -43,6 +45,7 @@ resource "aws_subnet" "public" {
 
   tags {
     Name = "${var.cluster_prefix}-public-${count.index}"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
 
@@ -56,6 +59,7 @@ resource "aws_route_table" "public" {
 
   tags {
     Name = "${var.cluster_prefix}-public"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
 
@@ -73,6 +77,7 @@ resource "aws_subnet" "private" {
 
   tags {
     Name = "${var.cluster_prefix}-private-${count.index}"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
 
@@ -89,6 +94,7 @@ resource "aws_nat_gateway" "private_gateway" {
 
   tags {
     Name = "${var.cluster_prefix}"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
 
@@ -103,6 +109,7 @@ resource "aws_route_table" "private" {
 
   tags {
     Name = "${var.cluster_prefix}-private"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
 
