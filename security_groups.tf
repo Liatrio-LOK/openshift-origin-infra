@@ -1,5 +1,9 @@
 resource "aws_security_group" "internal" {
   vpc_id = "${aws_vpc.cluster_vpc.id}"
+  tags {
+    group = "${var.cluster_prefix}-terraform-created"
+    Name = "internal.${var.cluster_prefix}.sg"
+  } 
 
   ingress {
     from_port = 0
@@ -11,6 +15,11 @@ resource "aws_security_group" "internal" {
 
 resource "aws_security_group" "bastion" {
   vpc_id = "${aws_vpc.cluster_vpc.id}"
+
+  tags {
+    group = "${var.cluster_prefix}-terraform-created"
+    Name = "bastion.${var.cluster_prefix}.sg"
+  } 
 
   ingress {
     from_port   = 22
@@ -30,6 +39,11 @@ resource "aws_security_group" "bastion" {
 
 resource "aws_security_group" "master" {
   vpc_id = "${aws_vpc.cluster_vpc.id}"
+
+  tags {
+    group = "${var.cluster_prefix}-terraform-created"
+    Name = "master.${var.cluster_prefix}.sg"
+  } 
 
   ingress {
     from_port   = 22
@@ -72,6 +86,11 @@ resource "aws_security_group" "master" {
 resource "aws_security_group" "nodes" {
   vpc_id = "${aws_vpc.cluster_vpc.id}"
 
+  tags {
+    group = "${var.cluster_prefix}-terraform-created"
+    Name = "nodes.${var.cluster_prefix}.sg"
+  } 
+
   ingress {
     from_port   = 22
     to_port     = 22
@@ -104,6 +123,11 @@ resource "aws_security_group" "nodes" {
 
 resource "aws_security_group" "lb" {
   vpc_id = "${aws_vpc.cluster_vpc.id}"
+
+  tags {
+    group = "${var.cluster_prefix}-terraform-created"
+    Name = "lb.${var.cluster_prefix}.sg"
+  } 
 
   ingress {
     from_port   = 80

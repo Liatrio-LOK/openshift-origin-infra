@@ -20,6 +20,7 @@ resource "aws_lb" "cluster" {
 
   tags {
     Name = "${var.cluster_prefix}"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
 
@@ -78,6 +79,7 @@ resource "aws_lb" "apps" {
 
   tags {
     Name = "apps.${var.cluster_prefix}"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
 

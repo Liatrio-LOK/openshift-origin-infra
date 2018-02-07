@@ -16,6 +16,7 @@ resource "aws_instance" "bastion" {
 
   tags {
     Name = "bastion.${var.cluster_prefix}.${var.domain}"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
 
@@ -52,6 +53,7 @@ resource "aws_instance" "master" {
 
   tags {
     Name = "master${count.index}.${var.cluster_prefix}.${var.domain}"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
 
@@ -88,6 +90,7 @@ resource "aws_instance" "etcd" {
 
   tags {
     Name = "etcd${count.index}.${var.cluster_prefix}.${var.domain}"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
 
@@ -133,5 +136,6 @@ resource "aws_instance" "nodes" {
 
   tags {
     Name = "node${count.index}.${var.cluster_prefix}.${var.domain}"
+    group = "${var.cluster_prefix}-terraform-created"
   }
 }
