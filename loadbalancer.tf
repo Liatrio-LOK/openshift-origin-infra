@@ -89,11 +89,26 @@ resource "aws_lb_target_group" "apps" {
   # TODO: Health Check (https://www.terraform.io/docs/providers/aws/r/lb_target_group.html#health_check)
 }
 
+resource "aws_lb_target_group" "apps_http" {
+  name     = "apps-http-${var.cluster_prefix}"
+  vpc_id   = "${aws_vpc.cluster_vpc.id}" # this is fine?
+  port     = 80
+  protocol = "HTTP"
+  # TODO: Health Check (https://www.terraform.io/docs/providers/aws/r/lb_target_group.html#health_check)
+}
+
 resource "aws_lb_target_group_attachment" "node" {
   count            = "${var.az_count}"
   target_group_arn = "${aws_lb_target_group.apps.arn}"
   target_id        = "${element(aws_instance.nodes.*.id, count.index)}"
   port             = 443
+}
+
+resource "aws_lb_target_group_attachment" "node_http" {
+  count            = "${var.az_count}"
+  target_group_arn = "${aws_lb_target_group.apps_http.arn}"
+  target_id        = "${element(aws_instance.nodes.*.id, count.index)}"
+  port             = 80
 }
 
 resource "aws_lb_listener" "apps" {
@@ -109,3 +124,13 @@ resource "aws_lb_listener" "apps" {
   }
 }
 
+resource "aws_lb_listener" "apps_http" {
+  load_balancer_arn = "${aws_lb.apps.arn}"
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    target_group_arn = "${aws_lb_target_group.apps_http.arn}"
+    type             = "forward"
+  }
+}
